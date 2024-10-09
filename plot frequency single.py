@@ -20,7 +20,7 @@ import os
 
 plot_sfdr = False
 
-def plotF(in_file, out_file, input_name, y_lim, x_lim, x_axis_name, xscale=1, xscale_suffix='', plot_sfdr=False, window_positon=100):
+def plotF(in_file, out_file, input_name, y_lim, x_lim, x_lim_sfdr, x_axis_name, xscale=1, xscale_suffix='', plot_sfdr=False, window_positon=100):
     (y_min, y_max) = y_lim
     (x_min, x_max) = x_lim
     x_name = r"%s X" % (input_name)
@@ -33,7 +33,7 @@ def plotF(in_file, out_file, input_name, y_lim, x_lim, x_axis_name, xscale=1, xs
     df = pd.read_csv(r"./data/%s" % (in_file))
 
     #Activate style
-    plt.style.use("./styles/presentation.mplstyle")
+    plt.style.use("./styles/BA.mplstyle")
 
     # fig = plt.figure()
     #Create axis (default is 1x1)
@@ -45,9 +45,11 @@ def plotF(in_file, out_file, input_name, y_lim, x_lim, x_axis_name, xscale=1, xs
     ax.plot((df[x_name].values)*xscale ,df[y_name].values)
 
     if plot_sfdr:
-        peakind = find_peaks(df[y_name].values, height=-30)[0]
-        pksf=df[x_name][peakind].values
-        pksY=df[y_name][peakind].values
+        ind_x_min = np.where(abs(df[x_name]*xscale-x_lim_sfdr[0]) <= 0.000001)[0][0]
+        ind_x_max = np.where(abs(df[x_name]*xscale-x_lim_sfdr[1]) <= 0.000001)[0][0]
+        peakind = find_peaks(np.power(10, df[y_name].values[ind_x_min:ind_x_max]))[0]
+        pksf=df[x_name][ind_x_min+peakind].values
+        pksY=df[y_name][ind_x_min+peakind].values
         isorted = np.argsort(pksY)
         sfdrval = pksY[isorted[-1]] - pksY[isorted[-2]]
 
@@ -55,18 +57,26 @@ def plotF(in_file, out_file, input_name, y_lim, x_lim, x_axis_name, xscale=1, xs
         pkYa = pksY[isorted[-1]]
         pkfb = pksf[isorted[-2]]*xscale
         pkYb = pksY[isorted[-2]]
+        print(f"First peak at {pkfa}, second at {pkfb}")
         # ax.fill_between((0,100),(pkYb,pkYb),(pkYa,pkYa), label = 'SFDR',
         #                      color = "lightblue") 
 
         ax.plot([pkfa, x_max], [pkYa, pkYa], c='black')
         ax.plot([pkfb, x_max], [pkYb, pkYb], c='black')
-        ax.annotate('', xy=((pkfb*2+x_max)/3, pkYa), xycoords='data',
-                    xytext=((pkfb*2+x_max)/3, pkYb), textcoords='data',
+        ax.annotate('', xy=(pkfb+1, pkYa), xycoords='data',
+                    xytext=(pkfb+1, pkYb), textcoords='data',
                     arrowprops=dict(arrowstyle="<->",
                                     connectionstyle=patches.ConnectionStyle.Bar(armA=0.0, armB=0.0, fraction=0.0, angle=None),
                                     #ec="k",
                                     shrinkA=1, shrinkB=1)) 
-        ax.annotate("SFDR %ddB" % (pkYa-pkYb), ((pkfb*2+x_max)/3+1, (pkYa+pkYb)/2), va='center', ha='left')
+        ax.annotate("SFDR %ddB" % (pkYa-pkYb), (pkfb+2, (pkYa+pkYb)/2), va='center', ha='left')
+        # ax.annotate('', xy=((pkfb*2+x_max)/3, pkYa), xycoords='data',
+        #             xytext=((pkfb*2+x_max)/3, pkYb), textcoords='data',
+        #             arrowprops=dict(arrowstyle="<->",
+        #                             connectionstyle=patches.ConnectionStyle.Bar(armA=0.0, armB=0.0, fraction=0.0, angle=None),
+        #                             #ec="k",
+        #                             shrinkA=1, shrinkB=1)) 
+        # ax.annotate("SFDR %ddB" % (pkYa-pkYb), ((pkfb*2+x_max)/3+1, (pkYa+pkYb)/2), va='center', ha='left')
 
         pksf = np.array([pkfa, pkfb])
         pksY = np.array([pkYa, pkYb])
@@ -92,26 +102,28 @@ def plotF(in_file, out_file, input_name, y_lim, x_lim, x_axis_name, xscale=1, xs
     # plt.savefig("./plots/spectrum_in_25G_460.svg")
 
 if __name__ == '__main__':
-    design_point = "460"
-    plotF(
-        r"Interactive.%s_IN_f.csv" % (design_point),
-        r"spectrum_in_25G_%s.svg" % (design_point),
-        "LO_f (Design_Point=1)",
-        (-100, 20),
-        (0, 25),
-        'LO',
-        10**-9, 'G', False, 1
-        )
+    design_point = "548"
+    # plotF(
+    #     r"Interactive.%s_IN_f.csv" % (design_point),
+    #     r"spectrum_in_25G_%s.svg" % (design_point),
+    #     "LO_f (Design_Point=1)",
+    #     (-100, 20),
+    #     (0, 25),
+    #     'LO',
+    #     10**-9, 'G', False, 1
+    #     )
 
 
     plotF(
-        r"Interactive.%s_OUT_f.csv" % (design_point),
-        r"spectrum_out_25G_%s.svg" % (design_point),
-        "OUT_f (Design_Point=1)",
-        (-100, 20),
-        (10, 40),
-        'OUT',
-        10**-9, 'G', False, 2
+        in_file = r"final/Interactive.%s_OUT_f.csv" % (design_point),
+        out_file = r"spectrum_out_25G_%s.pdf" % (design_point),
+        input_name = "OUT_f (Design_Point=1)",
+        y_lim = (-250, 20),
+        x_lim = (10, 80),
+        x_lim_sfdr = (10, 60),
+        x_axis_name = 'OUT',
+        xscale = 10**-9, xscale_suffix = 'G', 
+        plot_sfdr = True, window_positon=2
         )
     
     plt.show()
