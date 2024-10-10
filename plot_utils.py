@@ -8,6 +8,10 @@ def plotDF(ax, x, y, label, xscale=1):
 def getData(df, base, str, ind):
     return df[r"%s %s %s" % (base, str, ind)].values
 
+def intersection(y1, y2, tol=5e-2):
+    close = np.isclose(y1, y2, atol=tol)
+    return np.where(close == True)[0]
+
 def minSFDR(ax, df, name_base, data_names, xlim, xscale):
     (x_min, x_max) = (xlim)
     max_branchA = None

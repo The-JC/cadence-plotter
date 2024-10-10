@@ -69,7 +69,7 @@ def plotF(in_file, out_file, input_name, y_lim, x_lim, x_lim_sfdr, x_axis_name, 
                                     connectionstyle=patches.ConnectionStyle.Bar(armA=0.0, armB=0.0, fraction=0.0, angle=None),
                                     #ec="k",
                                     shrinkA=1, shrinkB=1)) 
-        ax.annotate("SFDR %ddB" % (pkYa-pkYb), (pkfb+2, (pkYa+pkYb)/2), va='center', ha='left')
+        ax.annotate("%ddB" % (pkYa-pkYb), (pkfb+2, (pkYa+pkYb)/2), va='center', ha='left')
         # ax.annotate('', xy=((pkfb*2+x_max)/3, pkYa), xycoords='data',
         #             xytext=((pkfb*2+x_max)/3, pkYb), textcoords='data',
         #             arrowprops=dict(arrowstyle="<->",
@@ -125,5 +125,17 @@ if __name__ == '__main__':
         xscale = 10**-9, xscale_suffix = 'G', 
         plot_sfdr = True, window_positon=2
         )
+
+    # plotF(
+    #     in_file = r"final/Interactive.%s_V5_f.csv" % (design_point),
+    #     out_file = r"spectrum_V5_25G_%s.pdf" % (design_point),
+    #     input_name = "V5f (Design_Point=1)",
+    #     y_lim = (-250, 20),
+    #     x_lim = (10, 80),
+    #     x_lim_sfdr = (10, 60),
+    #     x_axis_name = 'OUT (unfiltered)',
+    #     xscale = 10**-9, xscale_suffix = 'G', 
+    #     plot_sfdr = True, window_positon=2
+    #     )
     
     plt.show()
