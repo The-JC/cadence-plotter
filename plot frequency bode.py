@@ -82,7 +82,7 @@ def plotDiff(ax, x1, x2, x, y, xscale, x_offset=0):
 
 if __name__ == "__main__":
     #Activate style
-    plt.style.use("./styles/BA.mplstyle")
+    plt.style.use("./styles/presentation.mplstyle")
 
 
 
@@ -117,5 +117,5 @@ if __name__ == "__main__":
     #Show legend
     # plt.legend(loc='upper center', ncol=3, bbox_to_anchor=(0.5, 1.15))
 
-    plt.savefig(r"./plots/filter_bode_%s.pdf" % (name_base))
+    plt.savefig(r"./plots/filter_bode_%s.svg" % (name_base))
     plt.show()

@@ -61,14 +61,16 @@ if __name__ == '__main__':
 
 
     #Activate style
-    plt.style.use("./styles/BA.mplstyle")
+    plt.style.use("./styles/presentation.mplstyle")
+
+    file_type = 'svg'
 
     x_lim= (0, 120)
     y_lim=(-0.05, 0.85)
 
     plot_transient(
         in_file= 'Interactive.375_OUT.csv',
-        out_file= 'transient375_unfiltered.pdf',
+        out_file= f'transient375_unfiltered.{file_type}',
         input_names= ('OUTp (Design_Point=1)', 'OUTn (Design_Point=1)'),
         y_axis_name=r"OUT(unfiltered) [\si{\volt}]",
         x_lim= x_lim,
@@ -78,15 +80,15 @@ if __name__ == '__main__':
     )
 
     plot_transient(
-        in_file= 'final/Interactive.548_OUT_tran.csv',
-        out_file= 'transient548_filtered.pdf',
+        in_file= 'final/Interactive.564_OUT_tran.csv',
+        out_file= f'transient564_filtered.{file_type}',
         input_names= ('OUTp (Design_Point=1)', 'OUTn (Design_Point=1)'),
         y_axis_name=r"OUT [\si{\volt}]",
         x_lim= x_lim,
         y_lim=y_lim,
         xscale = 10**12,
         xscale_suffix = 'p',
-        tol=2e-2
+        tol=1e-2
     )
 
     #Create axis (default is 1x1)

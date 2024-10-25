@@ -5,12 +5,16 @@ import pandas as pd
 import numpy as np
 from scipy.signal import find_peaks
 import os
+from plot_utils import minSFDR_XY
 
-name_base = "OUT_f"
-arrData = ["15G", "25G"]
-arrStr =  {"15G": "15GHz", "25G": "25GHz"}
+# name_base = "OUT_f (Design_Point=1)"
+name_base = "V2_f (Design_Point=1)"
+arrData = ["17.5G", "25G"]
+arrStr =  {"17.5G": "17.5GHz", "25G": "25GHz"}
+# arrFile = ["Interactive.559_175GHz_OUT_f.csv", "Interactive.564_OUT_f.csv"]
+arrFile = ["Interactive.559_175GHz_V2_f.csv", "Interactive.564_V2_f.csv"]
 
-y_min = -120
+y_min = -250
 y_max = 20
 x_min = 1
 x_max = 100
@@ -19,14 +23,9 @@ x_max = 100
 #Use to manually load latex path on IAS machines if not loaded earlier 
 os.environ["PATH"] += os.pathsep + "/software/texlive/2023/bin/x86_64-linux"
 
-#Import using pandas
-df = pd.read_csv("./data/Interactive.487_OUT_f.csv")
-
 #Activate style
 plt.style.use("./styles/presentation.mplstyle")
 
-#Create axis (default is 1x1)
-fig, ax = plt.subplots(2, 1, sharex=True)
 
 xscale = 10**-9
 xscale_suffix = 'G'
@@ -71,74 +70,97 @@ def plotWithSFDR(ax, x, y):
     #     marker='x',
     #     c='r')
 
-def minSFDR(ax, df, data_names):
-    max_branchA = None
-    max_branchB = None
+# def minSFDR(ax, df, data_names, x_lim_sfdr, atol):
+    # max_branchA = None
+    # max_branchB = None
 
-    glb_pkfa = 0
-    glb_pkYa = 0
-    glb_pkfb = 0
-    glb_pkYb = 0
+    # glb_pkfa = 0
+    # glb_pkYa = 0
+    # glb_pkfb = 0
+    # glb_pkYb = 0
 
-    for strF in data_names:
-        x = getData(df,name_base, strF, 'X')
-        y = getData(df,name_base, strF, 'Y')
-        peakind = find_peaks(y, height=-50)[0]
-        pksf    = x[peakind]
-        pksY    = y[peakind]
-        isorted = np.argsort(pksY)
-        sfdrval = pksY[isorted[-1]] - pksY[isorted[-2]]
-        pkfa = pksf[isorted[-1]]*xscale
-        pkYa = pksY[isorted[-1]]
-        pkfb = pksf[isorted[-2]]*xscale
-        pkYb = pksY[isorted[-2]]
+    # for strF in data_names:
+    #     # x = getData(df,name_base, strF, 'X')
+    #     # y = getData(df,name_base, strF, 'Y')
+    #     # peakind = find_peaks(y, height=-50)[0]
+    #     # pksf    = x[peakind]
+    #     # pksY    = y[peakind]
+    #     # isorted = np.argsort(pksY)
+    #     # sfdrval = pksY[isorted[-1]] - pksY[isorted[-2]]
 
-        if max_branchA == None or pkYa > glb_pkYa:
-            max_branchA = strF
-            glb_pkfa = pkfa
-            glb_pkYa = pkYa
-        if max_branchB == None or pkYb > glb_pkYb:
-            max_branchB = strF
-            glb_pkfb = pkfb
-            glb_pkYb = pkYb
+    #     x = getData(df, name_base, strF, 'X')
+    #     y = getData(df, name_base, strF, 'Y')
+    #     ind_x_min = np.where(abs(x*xscale-x_lim_sfdr[0]) <= atol)[0][0]
+    #     ind_x_max = np.where(abs(x*xscale-x_lim_sfdr[1]) <= atol)[0][0]
+    #     peakind = find_peaks(np.power(10, y[ind_x_min:ind_x_max]))[0]
+    #     pksf=x[ind_x_min+peakind].values
+    #     pksY=y[ind_x_min+peakind].values
+    #     isorted = np.argsort(pksY)
+    #     sfdrval = pksY[isorted[-1]] - pksY[isorted[-2]]
 
-    ax.plot([glb_pkfa, x_max], [glb_pkYa, glb_pkYa], c='black')
-    ax.plot([glb_pkfb, x_max], [glb_pkYb, glb_pkYb], c='black')
-    ax.annotate('', xy=((glb_pkfb*2+x_max)/3, glb_pkYa), xycoords='data',
-                xytext=((glb_pkfb*2+x_max)/3, glb_pkYb), textcoords='data',
-                arrowprops=dict(arrowstyle="<->",
-                                connectionstyle=patches.ConnectionStyle.Bar(armA=0.0, armB=0.0, fraction=0.0, angle=None),
-                                #ec="k",
-                                shrinkA=1, shrinkB=1)) 
-    ax.annotate("SFDR %ddB" % (glb_pkYa-glb_pkYb), ((glb_pkfb*2+x_max)/3+1, (glb_pkYa+glb_pkYb)/2), va='center', ha='left')
+    #     pkfa = pksf[isorted[-1]]*xscale
+    #     pkYa = pksY[isorted[-1]]
+    #     pkfb = pksf[isorted[-2]]*xscale
+    #     pkYb = pksY[isorted[-2]]
 
-# ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.2f}'.format(x*10**9) + 'n'))
+    #     if max_branchA == None or pkYa > glb_pkYa:
+    #         max_branchA = strF
+    #         glb_pkfa = pkfa
+    #         glb_pkYa = pkYa
+    #     if max_branchB == None or pkYb > glb_pkYb:
+    #         max_branchB = strF
+    #         glb_pkfb = pkfb
+    #         glb_pkYb = pkYb
 
-i=0
-for strF in arrData:
-    # x = getData(df,name_base, strF)
-    print(strF)
-    x = getData(df, name_base, strF, 'X')
-    y = getData(df, name_base, strF, 'Y')
-    plotDF(ax[i], x, y, "%s" % (arrStr[strF]))
+    # ax.plot([glb_pkfa, x_max], [glb_pkYa, glb_pkYa], c='black')
+    # ax.plot([glb_pkfb, x_max], [glb_pkYb, glb_pkYb], c='black')
+    # ax.annotate('', xy=((glb_pkfb*2+x_max)/3, glb_pkYa), xycoords='data',
+    #             xytext=((glb_pkfb*2+x_max)/3, glb_pkYb), textcoords='data',
+    #             arrowprops=dict(arrowstyle="<->",
+    #                             connectionstyle=patches.ConnectionStyle.Bar(armA=0.0, armB=0.0, fraction=0.0, angle=None),
+    #                             #ec="k",
+    #                             shrinkA=1, shrinkB=1)) 
+    # ax.annotate("SFDR %ddB" % (glb_pkYa-glb_pkYb), ((glb_pkfb*2+x_max)/3+1, (glb_pkYa+glb_pkYb)/2), va='center', ha='left')
 
-    # minSFDR(ax[i], df, arrData)
-    plotWithSFDR(ax[i], x, y)
 
-    #Set axis labels
-    # ax[i].set_xlabel(r"Frequency [\si{%s\hertz}]" % (xscale_suffix))
-    ax[i].set_ylabel(r"OUT @ %s [\si{\decibel}]" % (arrStr[strF]))
+if __name__ == '__main__':
+    #Create axis (default is 1x1)
+    fig, ax = plt.subplots(2, 1, sharex=True)
+    
+    i=0
+    for i, strF in enumerate(arrData):
+        #Import using pandas
+        df = pd.read_csv("./data/final/%s" % (arrFile[i]))
 
-    ax[i].set_ylim(y_min, y_max)
-    ax[i].set_xlim(x_min, x_max)
+        # x = getData(df,name_base, strF)
+        print(strF)
+        # x = getData(df, name_base, strF, 'X')
+        # y = getData(df, name_base, strF, 'Y')
+        x = df[f"{name_base} X"].values
+        y = df[f"{name_base} Y"].values
+        plotDF(ax[i], x, y, "%s" % (arrStr[strF]))
 
-    i+=1
+        # plotWithSFDR(ax[i], x, y)
+        minSFDR_XY(ax[i], x, y, 
+                   x_lim_sfdr=[10, 51], 
+                   atol=0.001,
+                     xscale=xscale,
+                     shrink=0.25)
 
-ax[-1].set_xlabel(r"Frequency [\si{%s\hertz}]" % (xscale_suffix))
+        #Set axis labels
+        # ax[i].set_xlabel(r"Frequency [\si{%s\hertz}]" % (xscale_suffix))
+        ax[i].set_ylabel(r"OUT @ %s [\si{\decibel}]" % (arrStr[strF]))
 
-#Show legend
-# plt.legend(loc='upper center', ncol=3, bbox_to_anchor=(0.5, 1.15))
-# plt.legend(loc=)
+        ax[i].set_ylim(y_min, y_max)
+        ax[i].set_xlim(x_min, x_max)
 
-plt.savefig("./plots/frequency_15G_25G_487.pdf")
-plt.show()
+        i+=1
+
+    ax[-1].set_xlabel(r"Frequency [\si{%s\hertz}]" % (xscale_suffix))
+
+    #Show legend
+    # plt.legend(loc='upper center', ncol=3, bbox_to_anchor=(0.5, 1.15))
+    # plt.legend(loc=)
+
+    plt.savefig("./plots/frequency_175G_25G_unfiltered.svg")
+    plt.show()

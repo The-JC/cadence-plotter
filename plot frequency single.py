@@ -20,7 +20,7 @@ import os
 
 plot_sfdr = False
 
-def plotF(in_file, out_file, input_name, y_lim, x_lim, x_lim_sfdr, x_axis_name, xscale=1, xscale_suffix='', plot_sfdr=False, window_positon=100):
+def plotF(in_file, out_file, input_name, y_lim, x_lim, x_lim_sfdr, x_axis_name, xscale=1, xscale_suffix='', plot_sfdr=False, atol=0.000001, window_positon=100):
     (y_min, y_max) = y_lim
     (x_min, x_max) = x_lim
     x_name = r"%s X" % (input_name)
@@ -45,8 +45,8 @@ def plotF(in_file, out_file, input_name, y_lim, x_lim, x_lim_sfdr, x_axis_name, 
     ax.plot((df[x_name].values)*xscale ,df[y_name].values)
 
     if plot_sfdr:
-        ind_x_min = np.where(abs(df[x_name]*xscale-x_lim_sfdr[0]) <= 0.000001)[0][0]
-        ind_x_max = np.where(abs(df[x_name]*xscale-x_lim_sfdr[1]) <= 0.000001)[0][0]
+        ind_x_min = np.where(abs(df[x_name]*xscale-x_lim_sfdr[0]) <= atol)[0][0]
+        ind_x_max = np.where(abs(df[x_name]*xscale-x_lim_sfdr[1]) <= atol)[0][0]
         peakind = find_peaks(np.power(10, df[y_name].values[ind_x_min:ind_x_max]))[0]
         pksf=df[x_name][ind_x_min+peakind].values
         pksY=df[y_name][ind_x_min+peakind].values
@@ -69,7 +69,7 @@ def plotF(in_file, out_file, input_name, y_lim, x_lim, x_lim_sfdr, x_axis_name, 
                                     connectionstyle=patches.ConnectionStyle.Bar(armA=0.0, armB=0.0, fraction=0.0, angle=None),
                                     #ec="k",
                                     shrinkA=1, shrinkB=1)) 
-        ax.annotate("%ddB" % (pkYa-pkYb), (pkfb+2, (pkYa+pkYb)/2), va='center', ha='left')
+        ax.annotate(r"%d\si{\decibel}" % (pkYa-pkYb), (pkfb+2, (pkYa+pkYb)/2), va='center', ha='left')
         # ax.annotate('', xy=((pkfb*2+x_max)/3, pkYa), xycoords='data',
         #             xytext=((pkfb*2+x_max)/3, pkYb), textcoords='data',
         #             arrowprops=dict(arrowstyle="<->",
@@ -102,7 +102,8 @@ def plotF(in_file, out_file, input_name, y_lim, x_lim, x_lim_sfdr, x_axis_name, 
     # plt.savefig("./plots/spectrum_in_25G_460.svg")
 
 if __name__ == '__main__':
-    design_point = "548"
+    design_point = "564"
+    file_type = 'svg'
     # plotF(
     #     r"Interactive.%s_IN_f.csv" % (design_point),
     #     r"spectrum_in_25G_%s.svg" % (design_point),
@@ -112,11 +113,21 @@ if __name__ == '__main__':
     #     'LO',
     #     10**-9, 'G', False, 1
     #     )
-
+    plotF(
+        in_file = r"final/Interactive.%s_V2_f.csv" % (design_point),
+        out_file = r"spectrum_unfiltered_25G_%s.%s" % (design_point, file_type),
+        input_name = "V2_f (Design_Point=1)",
+        y_lim = (-250, 20),
+        x_lim = (10, 80),
+        x_lim_sfdr = (10, 60),
+        x_axis_name = 'OUT (unfiltered)',
+        xscale = 10**-9, xscale_suffix = 'G', 
+        plot_sfdr = True, window_positon=1
+        )
 
     plotF(
         in_file = r"final/Interactive.%s_OUT_f.csv" % (design_point),
-        out_file = r"spectrum_out_25G_%s.pdf" % (design_point),
+        out_file = r"spectrum_out_25G_%s.%s" % (design_point, file_type),
         input_name = "OUT_f (Design_Point=1)",
         y_lim = (-250, 20),
         x_lim = (10, 80),
@@ -124,6 +135,32 @@ if __name__ == '__main__':
         x_axis_name = 'OUT',
         xscale = 10**-9, xscale_suffix = 'G', 
         plot_sfdr = True, window_positon=2
+        )
+    
+    plotF(
+        in_file = r"final/Interactive.560_175GHz_OUT_f.csv",
+        out_file = r"spectrum_out_175G.%s" % (file_type),
+        input_name = "spectrum_OUT",
+        y_lim = (-250, 20),
+        x_lim = (10, 80),
+        x_lim_sfdr = (10, 40),
+        x_axis_name = 'OUT',
+        xscale = 10**-9, xscale_suffix = 'G', 
+        plot_sfdr = True, atol=0.0005,
+        window_positon=3
+        )
+    
+    plotF(
+        in_file = r"final/Interactive.559_175GHz_V2_f.csv",
+        out_file = r"spectrum_v2_175G.%s" % (file_type),
+        input_name = "V2_f (Design_Point=1)",
+        y_lim = (-250, 20),
+        x_lim = (10, 80),
+        x_lim_sfdr = (10, 40),
+        x_axis_name = 'OUT (unfiltered)',
+        xscale = 10**-9, xscale_suffix = 'G', 
+        plot_sfdr = True, atol=0.0005,
+        window_positon=4
         )
 
     # plotF(
